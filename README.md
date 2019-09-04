@@ -1,8 +1,8 @@
 
 ![k8s](container_evolution.svg)  
-                                figure contrainer deployment   
+                                **figure contrainer deployment**   
 ![k8s1](k8s1.png)
-                                figure k8s master and node   
+                                **figure k8s master and node**     
 # k8s-shell
 k8s install scripts . Include pvc , configmap , mysql , redis , elk , etc .
 ### prepare
