@@ -1,35 +1,35 @@
 # k8s-shell
 k8s install scripts . Include pvc , configmap , mysql , redis , elk , etc .
 ### prepare
-*check network and productive  ,on master and node*
-`
+*check network and productive  ,on master and node*  
+```
 ip link
 cat /sys/class/dmi/id/product_uuid
- `
-*set host name*
+ ```
+*set host name*  
 master name：  k8smaster   
 node name：    k8snode-（ip）   
 for example :   
-`
+```
 hostnamectl set-hostname  k8snode-112  
 hostnamectl set-hostname  k8snode-22  
 hostnamectl set-hostname  k8smaster  
-`
-*set domain name*
+```
+*set domain name*  
 vi /etc/hosts  
 ```
 172.22.22.11 k8snode-11
 172.22.22.13 k8snode-13
 172.22.22.10  k8smaster mirrors.cloud.com
  ```
- close swap,temp close and persistent close  
-```
+ *close swap,temp close and persistent close*  
+`
  swapoff -a 
-```
+`
 vi  /etc/fstab  
-```  
+`
 #/dev/mapper/centos-swap swap                    swap    defaults        0 0
- ```
+ `
 close firewall  
 ```
 systemctl stop firewalld
