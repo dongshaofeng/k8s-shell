@@ -1,21 +1,21 @@
 # k8s-shell
 k8s install scripts . Include pvc , configmap , mysql , redis , elk , etc .
 ### prepare
-check network and productive  ,on master and node
-```
+*check network and productive  ,on master and node*
+`
 ip link
 cat /sys/class/dmi/id/product_uuid
- ```
-set host name  
+ `
+*set host name*
 master name：  k8smaster   
 node name：    k8snode-（ip）   
 for example :   
-```
+`
 hostnamectl set-hostname  k8snode-112  
 hostnamectl set-hostname  k8snode-22  
 hostnamectl set-hostname  k8smaster  
-```
-set domain name  
+`
+*set domain name*
 vi /etc/hosts  
 ```
 172.22.22.11 k8snode-11
@@ -358,12 +358,20 @@ docker push  mirrors.cloud.com:5000/kubectl:1.14.2
 ```
 
 ### how to make master as node
+```
 kubectl taint nodes --all node-role.kubernetes.io/master- 1 
+```
 ### how to disable master as node
+```
 kubectl taint nodes k8s node-role.kubernetes.io/master=true:NoSchedule 
+```
 ### how to get new token
+```
 kubeadm token create
+```
 ### how to delete node ,on master
+```
 kubectl drain k8s-node1 --delete-local-data --force --ignore-daemonsets
 kubectl delete node k8s-node1
 kubeadm reset
+```
