@@ -169,7 +169,7 @@ kubeadm join 172.16.10.139:6443 --token lovodp.mpxnamtzfnqd58il \
     --discovery-token-ca-cert-hash sha256:e765f345f34f63ef6f74ee782cbf729515197fb32e3e93e9d6f6c72ad4cf5297
 ```
 
-### install k8s dashboard  
+### install k8s dashboard  .only on master machines  
 ```
 docker pull mirrorgooglecontainers/kubernetes-dashboard-amd64:v1.10.1
 docker tag mirrorgooglecontainers/kubernetes-dashboard-amd64:v1.10.1  k8s.gcr.io/kubernetes-dashboard-amd64:v1.10.1
