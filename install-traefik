@@ -1,0 +1,59 @@
+
+# install traefik
+```
+git clone https://github.com/containous/traefik.git
+cd traefik/examples/k8s
+kubectl apply -f traefik-rbac.yaml
+kubectl get clusterrole
+kubectl apply -f traefik-deployment.yaml
+kubectl get svc,deployment,pod -n kube-system
+kubectl apply -f ui.yaml
+```
+
+#  config traefik ui
+vi /etc/hosts
+```
+ip traefik-ui.minikube
+```
+
+http://traefik-ui.minikube
+
+# examples expose micro service  by traefik
+
+vi cloud-ingress.yaml
+```
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: cloud
+  namespace: kubesystem
+spec:
+  rules:
+  - host: cloud.traefik.kubernetes.local
+    http:
+      paths:
+      - path: /cloud
+        backend:
+          serviceName: cloud
+          servicePort: 9527
+      - path: /gateway
+        backend:
+          serviceName: gateway
+          servicePort: 30202
+      - path: /eureka
+        backend:
+          serviceName: eureka
+          servicePort: 30200
+```
+create k8s service
+```
+kubectl create -f  cloud-ingress.yaml
+```
+config host domain
+vi /etc/hosts
+```
+ip cloud.traefik.kubernetes.local
+```
+
+http://cloud.traefik.kubernetes.local
