@@ -1,52 +1,41 @@
 # k8s-shell
 k8s install scripts . Include pvc , configmap , mysql , redis , elk , etc .
-
-
-
-# Part onde install k8s master and nodes
-1 check network and productive  ,on master and node
+### prepare
+check network and productive  ,on master and node
 ```
 ip link
 cat /sys/class/dmi/id/product_uuid
  ```
-
-2 set host name
-master name：  k8smaster
-node name：    k8snode-（ip）
-
-for example :
+set host name  
+master name：  k8smaster   
+node name：    k8snode-（ip）   
+for example :   
 ```
-hostnamectl set-hostname  k8snode-112
-hostnamectl set-hostname  k8snode-22
-hostnamectl set-hostname  k8smaster
+hostnamectl set-hostname  k8snode-112  
+hostnamectl set-hostname  k8snode-22  
+hostnamectl set-hostname  k8smaster  
 ```
-
-3 set domain name
-vi /etc/hosts
+set domain name  
+vi /etc/hosts  
 ```
 172.22.22.11 k8snode-11
 172.22.22.13 k8snode-13
 172.22.22.10  k8smaster mirrors.cloud.com
  ```
-
- 4 close swap
-#temp close
+ close swap,temp close and persistent close  
 ```
  swapoff -a 
 ```
-#persistent close
-```
-vi  /etc/fstab
+vi  /etc/fstab  
+```  
 #/dev/mapper/centos-swap swap                    swap    defaults        0 0
  ```
-
-5 close firewall
+close firewall  
 ```
 systemctl stop firewalld
 systemctl disable firewalld
  ```
-
-6 install docker
+### install docker  
 ```
 yum install  -y yum-utils device-mapper-persistent-data lvm2
 yum-config-manager  --add-repo https://download.docker.com/linux/centos/docker-ce.repo
@@ -54,8 +43,7 @@ yum update  -y
 yum install  docker-ce-18.06.2.ce -y
 mkdir /etc/docker
 ```
- 
-7 config docker
+config docker  
 ```
 mkdir -p /home/datacenter/docker-data
 cat > /etc/docker/daemon.json <<EOF
@@ -73,21 +61,19 @@ cat > /etc/docker/daemon.json <<EOF
 }
 EOF
 ```
-8 set docker service
+set docker service  
 ```
 mkdir -p /etc/systemd/system/docker.service.d
 systemctl daemon-reload
 systemctl enable docker.service
 systemctl restart docker
 ```
-
-9 check  docker info
+check  docker info  
 ```
 docker info
 ```
-
-10 Installing kubeadm, kubelet and kubectl on all of your machines
-if you have a netwrok  problem, please on all the machines exectue the flowing shell .
+### Installing kubeadm, kubelet and kubectl on all of your machines  
+if you have a netwrok  problem, please on all the machines exectue the flowing shell .  
 ```
 docker pull mirrorgooglecontainers/kube-apiserver:v1.14.2
 docker pull mirrorgooglecontainers/kube-controller-manager:v1.14.2
@@ -129,7 +115,7 @@ gpgkey=https://mirrors.aliyun.com/yum/doc/yum-key.gpg https://mirrors.aliyun.co
 exclude=kube*
 EOF
  ```
-# Set SELinux in permissive mode (effectively disabling it)
+Set SELinux in permissive mode (effectively disabling it)
 ```
 setenforce 0
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
@@ -140,7 +126,7 @@ yum list kubelet kubeadm kubectl  --showduplicates|sort -r
 systemctl enable --now kubelet
 systemctl enable kubelet.service
 ```
-# ensure net.bridge.bridge-nf-call-iptables is set to 1 in your sysctl config
+ensure net.bridge.bridge-nf-call-iptables is set to 1 in your sysctl config
 ```
 cat <<EOF >  /etc/sysctl.d/k8s.conf 
 net.bridge.bridge-nf-call-ip6tables = 1
@@ -148,7 +134,7 @@ net.bridge.bridge-nf-call-iptables = 1
 EOF
 sysctl --system
  ```
-#Make sure that the br_netfilter module is loaded before this step
+Make sure that the br_netfilter module is loaded before this step
 ```
 modprobe br_netfilter
 lsmod | grep br_netfilter 
@@ -173,12 +159,13 @@ kubectl describe pod kube-proxy-wr8np -n kube-system
 journalctl -f -u kubelet.service
  ```
 
-## only on node ,join the master
+### only on node , join the master  
+```
 kubeadm join 172.16.10.139:6443 --token lovodp.mpxnamtzfnqd58il \
     --discovery-token-ca-cert-hash sha256:e765f345f34f63ef6f74ee782cbf729515197fb32e3e93e9d6f6c72ad4cf5297 
+```
 
-
-## install k8s dashboard
+### install k8s dashboard  
 ```
 docker pull mirrorgooglecontainers/kubernetes-dashboard-amd64:v1.10.1
 docker tag mirrorgooglecontainers/kubernetes-dashboard-amd64:v1.10.1  k8s.gcr.io/kubernetes-dashboard-amd64:v1.10.1
@@ -186,7 +173,7 @@ docker  rmi mirrorgooglecontainers/kubernetes-dashboard-amd64:v1.10.1 
 cd /usr/local/src
 wget https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/alternative/kubernetes-dashboard.yaml
  ```
-vi   kubernetes-dashboard.yaml
+vi   kubernetes-dashboard.yaml  
 ```
 spec:
       containers:
@@ -200,12 +187,12 @@ spec:
   ports:
     - port: 300001
 ```
-create dashboard application
+create dashboard application  
 ```
 kubectl create -f kubernetes-dashboard.yaml
 ```
-create rbca role and user
-vi  dashboard-admin.yaml
+create rbca role and user  
+vi  dashboard-admin.yaml  
  ```
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
@@ -222,17 +209,15 @@ subjects:
  name: kubernetes-dashboard
  namespace: kube-system
 ```
-kubectl apply -f dashboard-admin.yaml
- 
- 
-## install         Gitlab 、 Runner、   Docker Mirrors .only on master machines
-install docker registry
+kubectl apply -f dashboard-admin.yaml  
+### install  Gitlab 、 Runner、Docker Mirrors .only on master machines  
+install docker registry  
 ```
 mkdir -p /home/datacenter/registry
 docker run -d -p 172.16.10.71:5000:5000 --restart=always --name registry -v /home/datacenter/registry:/var/lib/registry  registry:latest
 curl -XGET http://mirrors.cloud.com:5000/v2/_catalog 
 ```
-install Gitlab and Runner
+install Gitlab and Runner  
 ```
 docker pull gitlab/gitlab-ce:latest
 mkdir -vp /home/datacenter/gitlab/{data,logs,config}
@@ -240,34 +225,35 @@ docker run --detach --hostname 172.16.10.71 --publish 172.16.10.71:443:443 --pub
 dokcer stop gitlab
 dokcer start gitlab
 ```
-install gitlab runner
+install gitlab runner  
 ```
 docker run -d --name gitlab-runner --restart always \
    -v /srv/gitlab-runner/config:/etc/gitlab-runner \
    -v /var/run/docker.sock:/var/run/docker.sock \
    gitlab/gitlab-runner:latest
  ```
-registry gitlab runner of maven  to gitlab server by token
+registry gitlab runner of maven  to gitlab server by token  
 ```
 docker run --rm -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner register   --non-interactive   --executor "docker"  --docker-image "mirrors.cloud.com:5000/cloudframework/maven-jdk8-docker:3.5.4"    --url "http://172.16.10.71/" --registration-token "uszNQNqTnGqHmJgzZysV" --description "springcloud" --tag-list “springcloud” --run-untagged="true" --locked="false" 
  ```
-set gitlab runner config
-vi /srv/gitlab-runner/config/config.toml 
+set gitlab runner config  
+vi /srv/gitlab-runner/config/config.toml   
 ```
 volumes = ["/var/run/docker.sock:/var/run/docker.sock", "/cache", "/root/.m2:/root/.m2"] 
 pull_policy = "if-not-present"
 ```
-registry gitlab runner of npm  to gitlab server by token
+registry gitlab runner of npm  to gitlab server by token  
 ```
- docker run --rm -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner register   --non-interactive   --executor "docker"  --docker-image "mirrors.cloud.com:5000/alpine-node-docker-vue:latest"    --url "http://172.16.10.71/" --registration-token "9yrChyhphp9tWUBJftVK" --description “arterycloud” --tag-list "vue" --run-untagged="true" --locked="false"
+docker run --rm -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner register   --non-interactive   --executor "docker"  --docker-image "mirrors.cloud.com:5000/alpine-node-docker-vue:latest"    --url "http://172.16.10.71/" --registration-token "9yrChyhphp9tWUBJftVK" --description “arterycloud” --tag-list "vue" --run-untagged="true" --locked="false"
  ```
-set gitlab runner config
-vi /srv/gitlab-runner/config/config.toml 
+set gitlab runner config  
+vi /srv/gitlab-runner/config/config.toml   
 ```
     volumes = ["/var/run/docker.sock:/var/run/docker.sock", "/cache", "/root/.npm:/root/.npm"]
     pull_policy = "if-not-present"
 ```
-make  npm vue   docker
+###  make tools docker ,npm /maven/kubectl ,and publish to docker registry  
+make  npm vue   docker  
 ```
 FROM  node:10.16.0-alpine
 MAINTAINER  Tony dong <dongshaofeng@189.cn>
@@ -284,12 +270,12 @@ RUN set -x; \
     rm docker.tgz; \
     docker -v
  ```
-build and publish npm docker to docker  Registry
+build and publish npm docker to docker  Registry  
 ```
 docker build -t mirrors.cloud.com:5000/alpine-node-docker-vue:latest  .
 docker push mirrors.cloud.com:5000/alpine-node-docker-vue:latest
  ```
-config docker
+config docker  
 ```
  vi  daemon.json
  
@@ -297,8 +283,8 @@ config docker
   "insecure-registries" : ["172.16.10.71:5000"]
 }
  ```
-make  maven  vue   docker
-vi  Dockerfile
+make  maven  vue   docker  
+vi  Dockerfile  
  ```
 FROM maven:3.5.4-jdk-8-alpine
 MAINTAINER  Tony dong <dongshaofeng@189.cn>
@@ -315,7 +301,7 @@ RUN set -x; \
     rm docker.tgz; \
     docker -v
  ```
-vi settings.xml
+vi settings.xml  
  ```
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -339,17 +325,17 @@ vi settings.xml
     </mirrors>
 </settings>
 ```
-build and publish maven docker to docker  Registry
+build and publish maven docker to docker  Registry  
 ```
 docker build -t mirrors.cloud.com:5000/cloudframework/maven-jdk8-docker:3.5.4 .
 docker push mirrors.cloud.com:5000/cloudframework/maven-jdk8-docker:3.5.4
  ```
-make java runtime docker
+make java runtime docker  
 ```
 docker pull fancybing/java:serverjre-8
 docker  tag  fancybing/java:serverjre-8  cloudframework/jdk:1.8
  ```
-make kubectl docker
+make kubectl docker  
 ```
 docker pull lachlanevenson/k8s-kubectl:v1.14.2
 cd /usr/local/src
@@ -357,7 +343,7 @@ mkdir -p /usr/local/src/kubectldocker 
 cd /usr/local/src/kubectldocker
 scp k8smaster:/etc/kubernetes/admin.conf /usr/local/src/kubectldocker/admin.conf 
  ```
-vi Dockerfile
+vi Dockerfile  
 ```
 FROM lachlanevenson/k8s-kubectl:v1.14.1
 LABEL maintainer="Tony <dongshaofeng@189.cn>"
@@ -365,19 +351,19 @@ ENV KUBE_LATEST_VERSION="v1.14.1"
 ADD admin.conf /root/.kube/config
 WORKDIR /root
 ```
-build and publish kubectl docker to docker  Registry
+build and publish kubectl docker to docker  Registry  
 ```
 docker build -t  mirrors.cloud.com:5000/kubectl:1.14.2 .
 docker push  mirrors.cloud.com:5000/kubectl:1.14.2
 ```
 
-## how to make master as node
+### how to make master as node
 kubectl taint nodes --all node-role.kubernetes.io/master- 1 
-## how to disable master as node
+### how to disable master as node
 kubectl taint nodes k8s node-role.kubernetes.io/master=true:NoSchedule 
-## how to get new token
+### how to get new token
 kubeadm token create
-## how to delete node ,on master
+### how to delete node ,on master
 kubectl drain k8s-node1 --delete-local-data --force --ignore-daemonsets
 kubectl delete node k8s-node1
 kubeadm reset
