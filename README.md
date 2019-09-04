@@ -362,6 +362,19 @@ WORKDIR /root
 docker build -t mirrors.cloud.com:5000/kubectl:1.14.2 .
 docker push mirrors.cloud.com:5000/kubectl:1.14.2
 ```
+### install redis
+```
+docker pull mirrorgooglecontainers/redis:e2e
+docker tag mirrorgooglecontainers/redis:e2e k8s.gcr.io/redis:e2e
+docker pull mirrorgooglecontainers/google_samples/gb-redisslave:v3
+docker tag mirrorgooglecontainers/google_samples/gb-redisslave:v3 gcr.io/google_samples/gb-redisslave:v3
+kubectl apply -f https://k8s.io/examples/application/guestbook/redis-master-deployment.yaml
+kubectl apply -f https://k8s.io/examples/application/guestbook/redis-master-service.yaml
+kubectl apply -f https://k8s.io/examples/application/guestbook/redis-slave-deployment.yaml
+kubectl apply -f https://k8s.io/examples/application/guestbook/redis-slave-service.yaml
+kubect exec -it redis-master bash
+```
+
 ### how to make master as node
 ```
 kubectl taint nodes --all node-role.kubernetes.io/master-1
