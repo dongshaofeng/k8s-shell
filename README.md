@@ -124,7 +124,8 @@ EOF
 setenforce 0
 sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 #yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
-yum install -y kubelet-1.14.2 kubeadm-1.14.2 kubectl-1.14.2  --disableexcludes=kubernetes
+yum install -y kubelet-1.15.3 kubeadm-1.15.3 kubectl-1.15.3  --disableexcludes=kubernetes
+
 yum list kubelet kubeadm kubectl  --showduplicates|sort -r
 
 systemctl enable --now kubelet
@@ -147,7 +148,8 @@ lsmod | grep br_netfilter
 ```
 kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/rbac-kdd.yaml
 kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
-kubeadm init --pod-network-cidr=192.168.0.0/16
+
+kubeadm init  --image-repository registry.aliyuncs.com/google_containers --kubernetes-version=v1.15.3 --pod-network-cidr=10.10.0.0/16  --service-cidr=10.20.0.0/12 --apiserver-advertise-address=172.28.128.3
 ```
 *for  root user ,set kubeadm config*  
 vi ~/.bashrc
